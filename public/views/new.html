@@ -1,0 +1,19 @@
+<div ng-controller="newCtrl">
+	<h2>New contact</h2>
+	<form name='newContact' novalidate class="form-horizontal">
+		
+		<!--elemento angular se basa en el objeto contact creado en el controlador. live significa que puede actualizar directamente la base de datos cuendo el elemento .onchange-->
+		<!-- los attr del form field, actuan como scope para el template form-field.html y su directiva-->
+		<form-field record="contact" field='firstName' live='false' required="true"></form-field>
+		<form-field record="contact" field='lastName' live='false' required="true"></form-field>
+		<form-field ng-repeat="(key, value) in contact | keyFilter: 'firstName' | keyFilter: 'lastName' " record="contact" field="{{key}}"></form-field>
+		
+		<new-field record="contact" live="false"></new-field>
+		
+			<div class="row form-group">
+			<div class="col-xs-12 col-sm-offset-2 col-sm-10 col-md-10 col-lg-10">
+				<button class="btn btn-primary" ng-click="save()" type="">Create Contact </button>
+			</div>
+		</div>
+	</form>
+</div>

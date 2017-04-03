@@ -1,0 +1,42 @@
+angular.module('contactsApp')
+	.factory('Contact', function($resource){
+		return $resource('/api/contact/:id', {id: '@id'}, {
+			'update': {method: 'PUT'}
+		});
+	});
+angular.module('contactsApp')
+	.factory('Fields', function($q, $http, Contact){
+		return function name(){
+			var url = '/options/displayed_fields',
+				ignore =['fiesrtName', 'lastName', 'id', 'userId'],
+				allFields = [],
+				deferred = $q.defer(),
+
+				//asincronomo
+				contacts = Contacts.query(function (){
+					//cuando termine la query osea, los datos existan. creara los objetos contacts
+					contacts.forEach(function (c){
+						//busco todas las fields existentes en los diferentes contactos
+						Object.key(c).forEach(function (k){
+							//si la key no existe en allfield ya AND key no esta en los ignorados
+							if(allFields.indexOf(k) < 0 && ignore.indexOf(k) < 0 ) allFields.push(k);
+						});
+					});
+					deferred.resolve(allFields);
+				});
+			return {
+				get: function(){
+					//retornar todo lo que traiga el array json
+					return $http.get(url)
+				},
+				set: function(newFields){
+					
+					return $http.post(url, { newFields})
+				},
+				headers: function (){
+					//deferred, espera hasta tener las respuestas de allFields y las devuleve cuando esta todo ok.
+					return deferred.promise;
+				} 
+			}
+		};
+	})

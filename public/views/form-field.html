@@ -1,0 +1,30 @@
+<!-- form angular. hack -> $dirty si es que cambio alguno de sus input (en este caso 1) $invalid si hay un error segun el controlador-->
+<!-- {{field}} significa que es una referencia al scope field creado en el template padre (plantilla <form-field> en new.html)-->
+<div class="row form-group" ng-form="{{ field }}" ng-class="{ 'has-error': {{field}}.$dirty && {{field}}.$invalid }">
+	<label class="col-sm-2 control-label"> {{ field | labelCase }} <span ng-if="required">*</span></label>
+	
+	<!--siwtch angular case:'required'-->
+	<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6" ng-switch="required">
+		
+		
+		<!--switch true -->
+		<!--record, field, parametros en tag form-input padre-->
+		<!--ng-blur -> actualiza cuando el usuario blur de input (pierde el foco)-->
+		<input ng-switch-when="true" ng-model ='record[field][0]' type="{{record[field][1]}}" class="form-control" required ng-change="update()" ng-blur="blurUpdate()"/>
+		
+		<!--switch default -->
+		<div class="input-group" ng-switch-default>
+			
+			<input ng-model ='record[field][0]' type="{{record[field][1]}}" class="form-control" ng-change="update()" ng-blur="blurUpdate()"/>
+			<span class="input-group-btn">
+				<button class="btn btn-default" ng-click="remove(field)"><span class="fa fa-times"></span></button>
+			</span>
+		</div>
+	</div>
+
+	<div class="col-sm-4 has-error" ng-show="{{field}}.$dirty && {{field}}.$invalid" ng-messages="field.$error">
+		<p class="control-label" ng-message='required'>{{ field | labelCase}} is required</p>
+		<!-- text: [text, "message"] ->  key :value[0,1]-->
+		<p class="control-label" ng-repeat="(key, value) in types" ng-message="{{key}}"> {{ field | labelCase}} {{value[1]}}</p>
+	</div>
+</div>

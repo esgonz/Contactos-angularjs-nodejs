@@ -1,0 +1,77 @@
+var express 	= require('express'),
+	bodyParser 	= require('body-parser'),
+	session 	= require('express-session'),
+	Bourne 		= require('bourne'),
+	crypto 		= require('crypto');
+
+var router 	= express.Router(),
+	db 		= new Bourne('users.json');
+
+function hash(password){
+
+	return crypto.createHash('sha256').update(password).digest('hex');
+};
+router
+	.use(bodyParser.urlencoded())
+	.use(bodyParser.json())
+	.use(session({ secret: 't438lsat847l8ksuyjg5akagray43kuykgDEthju56iomoixcvb2o'}))//usa un salt secret
+
+	.get('/login', function(req, res){
+		res.sendfile('public/login.html');
+	}) //si no estan registrados al ingresar, redirect to login via get (aqui)
+	.post('/login', function(req, res){
+		//obtengo desde el body los datos del usuario (que vienen desde el formulario)
+		//la clave se almacena encriptada
+		var user = {
+			username: req.body.username,
+			password: hash(req.body.password)
+		};
+
+		db.findOne(user, function (err, data){
+			//si el usuario se encuentra en DB
+			if(data){
+				req.session.userId = data.id;
+				res.redirect('/');
+			} else{
+				res.redirect('/login');
+			}
+		});
+	})//cuando ya envia los datos por el formulario
+	.post('/register', function(req, res){
+		//obtengo desde el body los datos del usuario (que vienen desde el formulario)
+		//la clave se almacena encriptada
+		var user = {
+			username: req.body.username,
+			password: hash(req.body.password),
+			options: {}
+		};
+		//verificar que no exista el nombre de usuario
+		db.find({ username: user.username}, function (err, data){
+			//si no se encuentra, se crea
+			if(!data.length){
+				db.insert(user, function (err, data){
+					req.session.userId = data.id;
+					res.redirect('/');				
+				});
+			} else{
+				res.redirect('/login')
+			}
+		});
+	})//cuando el usuario se registra via formulario de ingreso POST
+	.get('/logout', function(req, res){
+		req.session.userId = null;
+		res.redirect('/');
+	})//cuando el usuario termina la session
+	.use( function (req, res, next){
+		//esta funcion se ejecutara siempre que se establezca una peticion (use sin parametro)
+		//si el usuario esta con session iniciada, busco la informacion del usuario cada vez que hace una peticion
+		if(req.session.userId){
+			db.findOne({ id: req.sesion.userId}, function(err, data){
+				req.user = data;
+			})
+		}
+		next();
+
+	});
+
+module.exports = router;

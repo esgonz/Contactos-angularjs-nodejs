@@ -1,0 +1,26 @@
+
+
+<div class="container" ng-controller="listCtrl">
+	<input type="search" class="form-control" placeholder="Search" ng-model="query">
+	<table class="table table-bordered tabled-hover">
+		<caption>table title and/or explanatory text</caption>
+		<thead>
+			<tr>
+				<th ng-repeat="field in fields" ng-click ="sort(field)">
+					{{ field | labelCase }}
+					<!-- si sort.field es seleccioanada y sort.order es true (default es down/false)-->
+					<span ng-show="sort.field === field && !sort.order" class="fa fa-chevron-down"></span>
+					<!-- si sort.field es seleccioanada y sort.order es false (default es down/false)-->
+					<span ng-show="sort.field === field &&  sort.order" class="fa fa-chevron-up"></span>
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-click="show(contact.id)" ng-repeat="contact in contacts | filter: query | orderBy: sort.field : sort.order">
+				<td ng-repeat="field in fields">
+					{{ contact[field][0] }}
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>

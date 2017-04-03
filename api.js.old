@@ -1,0 +1,73 @@
+
+//req -> request parametros GET/POST
+//res -> response , la respuesta del servidor
+// bodyparser -> pasa la respuesta al navegador , generalmente en JSON (es equivalente al rendereado HTML)
+var express 	= require('express'),
+	Bourne		= require('bourne'),
+	bodyParser 	= require('body-parser'),
+
+	db 			= new Bourne('data/data.json'),
+	router 		= express.Router();
+
+router
+	.use(
+		function (req, res, next){
+			//middleware para obtener data usuario login
+			if(!req.user) req.user = { id: 1 };
+			next();
+		}
+	)
+	.use(
+
+		bodyParser.json()
+	)
+	.route('/contact')
+		//cuando ingresa a la pagina contact via get -> buscar registros
+		.get(function(req, res){
+
+			//buscar todos los registros del usuario logueado
+			db.find({ userId: parseInt(req.user.id, 10)}, function (err, data){
+				res.json(data);
+			})
+		})
+		//cuando ingresa a la pagina contact via post -> grabar registro de contacto
+		.post(function (req, res) {
+            var contact = req.body;
+            contact.userId = req.user.id;
+
+            db.insert(contact, function (err, data) {
+                res.json(data);
+            });
+        });
+
+// ver/editar contacto especifico (cuando url incluye id) -> api/contact/id ~api/contact/001
+router
+	.param('id', function(req, res, next){
+		//indico id como parametro request query (del id incluido en la urls)
+		req.dbQuery = { id: parseInt(req.params.id, 10) }
+		next();
+	})
+	.route('/contact/:id')
+		//obtener
+		.get(function( req, res){
+			db.findOne(req.dbQuery, function(err, data){
+				res.json(data);
+			});
+		})
+		//actualizar
+		.put(function (req, res) {
+            var contact = req.body;
+            delete contact.$promise;
+            delete contact.$resolved;
+            db.update(req.dbQuery, contact, function (err, data) {
+                res.json(data[0]);
+            });
+        })
+		//delete
+		.delete(function (req,res){
+			db.delete(req.dbQuery, function(){
+				res.json(null);
+			});
+		});//end route
+
+module.exports = router;
